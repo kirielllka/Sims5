@@ -1,0 +1,13 @@
+[tool.poetry]
+name = 'sims5'
+version = '1.0.0'
+description = ""
+authors = ['yan <korotkevich3007@gmail.com>']
+readme = 'README.md'
+
+[tool.poetry.dependencies]
+python = '^3.12'
+sqlalchemy = "^2.0.41"
+alembic = "^1.16.1"
+psycopg2-binary = "^2.9.10"
+python-dotenv = "^1.1.0"
