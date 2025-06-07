@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer
+from sqlalchemy import Column, String, Integer, BOOLEAN,ForeignKey
 
 from src.database import Base
 
@@ -7,6 +7,8 @@ class Human(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     age = Column(Integer, default=0)
-    male = Column(String)
-    weight = Column(Integer)
-    height = Column(Integer)
+    mother_id = Column(Integer, ForeignKey('human.id'), nullable=True)
+    pregnancy = Column(Integer, default=None,nullable=True)
+    father_id = Column(Integer, ForeignKey('human.id'),nullable=True)
+    sex = Column(String)
+    death_or_alive = Column(BOOLEAN)
