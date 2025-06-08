@@ -47,9 +47,10 @@ class HumanDAO:
     @classmethod
     def get_adults(cls):
         with session_maker() as session:
-            adults = session.query(Human).filter(Human.sex.in_(['male', 'female']),
+            adults = session.query(Human).filter(
                                                  Human.death_or_alive == True,
                                                  Human.age >= 18 * 12).all()
+            print(adults)
             return adults
 
     @classmethod
