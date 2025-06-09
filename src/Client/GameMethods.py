@@ -148,7 +148,7 @@ def show_people(chat_id, page=0, page_size=10,edit:bool=False,message_id:int=Non
 
     message = "Список людей:\n"
     for person in people[page * page_size: (page + 1) * page_size]:
-        message += f"{person.name}-{int(person.age/12)} лет {'Жив' if person.death_or_alive else 'Мертв'}\n"
+        message += f"{person.name}-{int(person.age/12)} лет {'Жив' if person.death_or_alive else 'Мертв'} {f'{10-person.pregnancy} месяц беременности' if person.pregnancy else ''}\n"
 
     keyboard = {
         "inline_keyboard": [
@@ -238,4 +238,3 @@ test_characters = [
         'death_or_alive': True
     }
 ]
-
