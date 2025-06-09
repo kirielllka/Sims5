@@ -8,8 +8,23 @@ class Bot:
     url = f'https://api.telegram.org/bot{os.getenv('BOT_TOKEN')}/'
 
     @classmethod
-    def send_message(cls, text:str, chat_id:int):
-        request = requests.get(url=cls.url+'sendMessage', params={'chat_id':chat_id,'text':text})
+    def send_message(cls, text:str, chat_id:int,keyboard:dict=None):
+        if keyboard:
+            json = {'chat_id':chat_id,'text':text,'reply_markup':keyboard}
+        else:
+            json = {'chat_id':chat_id,'text':text}
+
+        request = requests.post(url=cls.url+f'sendMessage', json=json)
+
+        if request.status_code == 200:
+            json_result = request.json()
+            return {'status':200,'data':json_result}
+        else:
+            return f'Ошибка:{request.status_code}'
+
+    @classmethod
+    def edit_message(cls, text:str, chat_id:int,message_id:int, keyboard:dict=None):
+        request = requests.post(url=cls.url+f'editMessageText', json={'chat_id':chat_id,'text':text,'reply_markup':keyboard, 'message_id':message_id})
         if request.status_code == 200:
             json_result = request.json()
             return {'status':200,'data':json_result}
@@ -26,3 +41,4 @@ class Bot:
             return request.json()
         else:
             return f'Ошибка:{request.status_code}'
+

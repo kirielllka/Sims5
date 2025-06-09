@@ -1,7 +1,6 @@
 from src.Models.HumanModel import Human
 from src.database import session_maker
 
-from sqlalchemy.orm import Session
 
 class HumanDAO:
 
@@ -50,7 +49,6 @@ class HumanDAO:
             adults = session.query(Human).filter(
                                                  Human.death_or_alive == True,
                                                  Human.age >= 18 * 12).all()
-            print(adults)
             return adults
 
     @classmethod

@@ -3,6 +3,7 @@ import math
 import random
 from concurrent.futures import ThreadPoolExecutor
 
+from src.Client.BotMethods import Bot
 from src.database import session_maker
 from src.HumanDAO.HumanDAO import HumanDAO,Human
 
@@ -31,9 +32,9 @@ def child():
     adults = HumanDAO.get_adults()
     pairs = []
     weights = []
-
     for i, person1 in enumerate(adults):
         for person2 in adults[i + 1:]:
+            print(111)
             if person1.sex != person2.sex:
                 father, mother = (person1, person2) if person1.sex == 'M' else (person2, person1)
                 children = HumanDAO.child_by_parents(father.id, mother.id)
@@ -44,7 +45,6 @@ def child():
     if pairs:
         father, mother = random.choices(pairs, weights=weights, k=1)[0]
         if not mother.pregnancy:
-            # Исправлено: заменяем 'id' на 'human_id' в соответствии с методом update
             updates = [
                 {'human_id': mother.id, 'updated_data': {'pregnancy': 9}},
                 {'human_id': father.id, 'updated_data': {'last_partner': mother.id}},
@@ -52,8 +52,10 @@ def child():
             ]
             with ThreadPoolExecutor() as executor:
                 list(executor.map(lambda x: HumanDAO.update(**x), updates))
+                return None
         else:
-            print('Женщина уже беременна')
+            return None
+    return None
 
 
 def process_person(people):
@@ -78,7 +80,6 @@ def oldering_on_month():
     peoples = HumanDAO.get_alive()
     child()
 
-    # Параллельная обработка людей
     with ThreadPoolExecutor(max_workers=4) as executor:
         executor.map(process_person, peoples)
 
@@ -105,12 +106,11 @@ def birth(mother):
         executor.submit(HumanDAO.create, **updates[1])
 
 
-def run_simulation(years=500):
-    with ThreadPoolExecutor() as executor:
-        executor.map(HumanDAO.create, test_characters)
+def run_simulation(months=1):
 
 
-    for _ in range(years * 12):
+
+    for _ in range(months):
         oldering_on_month()
 
 
@@ -140,6 +140,38 @@ def export_humans_to_csv(filename):
 
             for row in rows:
                 writer.writerow(row)
+
+
+def show_people(chat_id, page=0, page_size=10,edit:bool=False,message_id:int=None):
+    people = HumanDAO.get_all()  # Получаем всех людей
+    total_pages = (len(people) + page_size - 1) // page_size
+
+    message = "Список людей:\n"
+    for person in people[page * page_size: (page + 1) * page_size]:
+        message += f"{person.name}-{int(person.age/12)} лет {'Жив' if person.death_or_alive else 'Мертв'}\n"
+
+    keyboard = {
+        "inline_keyboard": [
+            [
+                {"text": "⬅️ Назад", "callback_data": f"people_page_{page - 1}"},
+                {"text": f"{page + 1}/{total_pages}", "callback_data": "current_page"},
+                {"text": "Вперёд ➡️", "callback_data": f"people_page_{page + 1}"}
+            ]
+        ]
+    }
+    if edit:
+        Bot.edit_message(
+            chat_id=chat_id,
+            text=message,
+            keyboard=keyboard,
+            message_id=message_id
+        )
+    else:
+        Bot.send_message(
+            chat_id=chat_id,
+            text=message,
+            keyboard=keyboard
+        )
 
 test_characters = [
     {
@@ -207,4 +239,3 @@ test_characters = [
     }
 ]
 
-run_simulation()

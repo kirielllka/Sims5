@@ -13,3 +13,5 @@ class Human(Base):
     sex = Column(String)
     last_partner = Column(Integer, ForeignKey('human.id',ondelete='SET NULL'), default=None, nullable=True)
     death_or_alive = Column(BOOLEAN)
+
+
