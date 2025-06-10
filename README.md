@@ -8,8 +8,8 @@
 
 1. **Клонируйте репозиторий**
    ```bash
-   git clone https://github.com/yourusername/civilization-observer-bot.git
-   cd civilization-observer-bot
+   git clone https://github.com/kirielllka/sims5.git
+   cd sims5
    ```
 
 2. **Установите зависимости**
