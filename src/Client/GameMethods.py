@@ -183,7 +183,7 @@ def run_simulation(months=1):
 def show_people(
     chat_id, page=0, page_size=10, edit: bool = False, message_id: int = None
 ):
-    people = HumanDAO.get_all()  # Получаем всех людей
+    people = HumanDAO.get_all()
     total_pages = (len(people) + page_size - 1) // page_size
 
     message = "Список людей:\n"
