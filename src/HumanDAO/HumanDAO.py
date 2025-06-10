@@ -24,48 +24,55 @@ class HumanDAO:
 
     @classmethod
     def update(cls, human_id, updated_data):
-        with session_maker() as session:  # Всё внутри одной сессии
-            human = session.query(Human).get(human_id)  # Загружаем объект в текущей сессии
+        with session_maker() as session:
+            human = session.query(Human).get(human_id)
             if not human:
                 return None
             for key, value in updated_data.items():
                 setattr(human, key, value)
-            session.commit()  # Сессия знает об изменениях
+            session.commit()
             return human
 
     @classmethod
-    def delete(cls, human_id):
-        human = cls.get_by_id(human_id)
-        if not human:
-            return False
+    def delete(cls, human_id: int):
         with session_maker() as session:
+            human = cls.get_by_id(human_id)
+        if human:
             session.delete(human)
             session.commit()
-            return True
 
     @classmethod
     def get_adults(cls):
         with session_maker() as session:
-            adults = session.query(Human).filter(
-                                                 Human.death_or_alive == True,
-                                                 Human.age >= 18 * 12).all()
+            adults = (
+                session.query(Human)
+                .filter(Human.death_or_alive == True, Human.age >= 18 * 12)
+                .all()
+            )
             return adults
 
     @classmethod
     def get_alive(cls):
         with session_maker() as session:
-            people = session.query(Human).filter(Human.death_or_alive == True,).all()
+            people = (
+                session.query(Human)
+                .filter(
+                    Human.death_or_alive == True,
+                )
+                .all()
+            )
             return people
 
     @classmethod
-    def child_by_parents(cls, mother_id,father_id):
+    def child_by_parents(cls, mother_id, father_id):
         with session_maker() as session:
-            child = session.query(Human).filter(
-            Human.mother_id==mother_id,
-            Human.father_id==father_id,
-            Human.death_or_alive == True
-        ).all()
+            child = (
+                session.query(Human)
+                .filter(
+                    Human.mother_id == mother_id,
+                    Human.father_id == father_id,
+                    Human.death_or_alive == True,
+                )
+                .all()
+            )
             return child
-
-
-

@@ -5,6 +5,10 @@ description = ""
 authors = ['yan <korotkevich3007@gmail.com>']
 readme = 'README.md'
 
+[tool.black]
+line-length = 85
+target-version = ['py312']
+
 [tool.poetry.dependencies]
 python = '^3.12'
 sqlalchemy = "^2.0.41"
@@ -12,3 +16,8 @@ alembic = "^1.16.1"
 psycopg2-binary = "^2.9.10"
 python-dotenv = "^1.1.0"
 requests = "^2.32.3"
+black = "^25.1.0"
+matplotlib = "^3.10.3"
+flake8 = "^7.2.0"
+
+
