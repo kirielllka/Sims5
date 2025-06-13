@@ -1,11 +1,14 @@
 import math
 from functools import partial
 
+
 from src.Client.BotMethods import Bot
 from src.HumanDAO.HumanDAO import HumanDAO
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import random
+
+from src.StatPlots import StatPlot
 
 male_names = [
     "Александр",
@@ -73,81 +76,83 @@ female_names = [
 ]
 
 
-def process_mother(mother, males):
-    if mother.pregnancy:
-        return None
-
-    suitable_males = []
-    male_weights = []
-
-    for father in males:
-        children = HumanDAO.child_by_parents(father.id, mother.id)
-        weight = 3 if children else 1
-        suitable_males.append(father)
-        male_weights.append(weight)
-
-    if suitable_males:
-        chosen_father = random.choices(suitable_males, weights=male_weights, k=1)[0]
-        return chosen_father, mother
-    return None
+class Human:
+    def __init__(self,name,age,sex,death_or_alive,pregnancy,mother_id,father_id):
+        self.name = name
+        self.age = age
+        self.sex = sex
+        self.death_or_alive = death_or_alive
+        self.pregnancy = pregnancy
+        self.mother_id = mother_id
+        self.father_id = father_id
 
 
-def child():
-    adults = HumanDAO.get_adults()
-    males = [p for p in adults if p.sex == "M"]
-    females = [p for p in adults if p.sex == "F"]
-    pairs = []
-    weights = []
-    with ThreadPoolExecutor() as executor:
-        process_func = partial(process_mother, males=males)
-        future_to_mother = {
-            executor.submit(process_func, mother): mother for mother in females
-        }
-        for future in as_completed(future_to_mother):
-            result = future.result()
-            if result:
-                pairs.append(result)
-                weights.append(2)
-    if pairs:
-        father, mother = random.choices(pairs, weights=weights, k=1)[0]
-        updates = [
-            {"human_id": mother.id, "updated_data": {"pregnancy": 9}},
-            {"human_id": father.id, "updated_data": {"last_partner": mother.id}},
-            {"human_id": mother.id, "updated_data": {"last_partner": father.id}},
-        ]
-        with ThreadPoolExecutor() as executor:
-            list(executor.map(lambda x: HumanDAO.update(**x), updates))
-
-    return None
-
-
-def process_person(people):
-    death_prob = 1 - math.exp(-((people.age / (350 * 12)) ** 3))
-    if random.random() < death_prob:
-        HumanDAO.update(human_id=people.id, updated_data={"death_or_alive": False})
-        return
-
-    if people.pregnancy:
-        if people.pregnancy == 1:
-            birth(people)
+    @classmethod
+    def choose_pair(cls,n=0):
+        peoples = list(HumanDAO.get_all())
+        p1 = random.choice(peoples)
+        peoples.remove(p1)
+        wights = len(peoples) * [1]
+        try:
+            if p1.sex == 'F':second_p = HumanDAO.get_by_id(HumanDAO.child_by_mother(p1.id).father_id)
+            else:second_p = HumanDAO.get_by_id(HumanDAO.child_by_father(p1.id).mother_id)
+            wights[wights.index(second_p)] = 3
+        except Exception:
+            pass
+        p2 = random.choices(peoples, weights=wights, k=1)[0]
+        if (p1.sex != p2.sex and p1.age>=18 and p2.age>=18 and
+                p1.pregnancy is None and p2.pregnancy is None):
+            if p1.sex == 'F':mother,father = p1,p2
+            else: mother,father = p2,p1
+            updates = [
+                {"human_id": mother.id, "updated_data": {"pregnancy": 0.75}},
+                {"human_id": father.id, "updated_data": {"last_partner": mother.id}},
+                {"human_id": mother.id, "updated_data": {"last_partner": father.id}},
+            ]
+            with ThreadPoolExecutor() as executor:
+                list(executor.map(lambda x: HumanDAO.update(**x), updates))
+        if n != 3:
+            Human.choose_pair(n+1)
         else:
-            HumanDAO.update(
-                human_id=people.id,
-                updated_data={
-                    "age": people.age + 1,
-                    "pregnancy": people.pregnancy - 1,
-                },
-            )
-    else:
-        HumanDAO.update(human_id=people.id, updated_data={"age": people.age + 1})
+            return None
 
+    @classmethod
+    def process_person(cls,people):
+        death_prob = (people.age/120)**8
+        a = random.random()
+        if a < death_prob:
+            print(a,death_prob)
+            HumanDAO.update(human_id=people.id, updated_data={"death_or_alive": False})
+            return
 
-def oldering_on_month():
-    peoples = HumanDAO.get_alive()
-    child()
+        if people.pregnancy:
+            if people.pregnancy == 0.25:
+                birth(people)
+                HumanDAO.update(
+                    human_id=people.id,
+                    updated_data={
+                        "age": people.age + 0.25,
+                        "pregnancy": None,
+                    },
+                )
+            else:
+                HumanDAO.update(
+                    human_id=people.id,
+                    updated_data={
+                        "age": people.age + 0.25,
+                        "pregnancy": people.pregnancy-0.25,
+                    },
+                )
+        else:
+            HumanDAO.update(human_id=people.id, updated_data={"age": people.age + 0.25})
 
-    with ThreadPoolExecutor() as executor:
-        executor.map(process_person, peoples)
+    @classmethod
+    def oldering_on_year(cls):
+        peoples = HumanDAO.get_alive()
+        Human.choose_pair()
+
+        with ThreadPoolExecutor() as executor:
+            executor.map(Human.process_person, peoples)
 
 
 def birth(mother):
@@ -175,9 +180,8 @@ def birth(mother):
 
 def run_simulation(months=1):
     for i in range(months):
-        oldering_on_month()
-        if i % 12 == 0:
-            print(i)
+        Human.oldering_on_year()
+        print(i)
 
 
 def show_people(
@@ -189,9 +193,9 @@ def show_people(
     message = "Список людей:\n"
     for person in people[page * page_size : (page + 1) * page_size]:
         message += (
-            f"{person.name}-{int(person.age / 12)} лет "
+            f"{person.name}-{int(person.age)} лет "
             f"{'Жив' if person.death_or_alive else 'Мертв'}"
-            f" {f'{10 - person.pregnancy} месяц беременности'
+            f" {f'{(1 - person.pregnancy)*12} месяц беременности'
                         if person.pregnancy else ''}\n"
         )
 
@@ -225,7 +229,7 @@ def reset():
 start_characters = [
     {
         "name": "Алиса",
-        "age": 30 * 12,
+        "age": 30,
         "mother_id": None,
         "pregnancy": None,
         "father_id": None,
@@ -234,7 +238,7 @@ start_characters = [
     },
     {
         "name": "Миша",
-        "age": 35 * 12,
+        "age": 35,
         "mother_id": None,
         "pregnancy": None,
         "father_id": None,
@@ -252,7 +256,7 @@ start_characters = [
     },
     {
         "name": "Диана",
-        "age": 28 * 12,
+        "age": 28,
         "mother_id": None,
         "pregnancy": None,
         "father_id": None,
@@ -261,7 +265,7 @@ start_characters = [
     },
     {
         "name": "Рома",
-        "age": 10 * 12,
+        "age": 10,
         "mother_id": None,
         "pregnancy": None,
         "father_id": None,
@@ -270,7 +274,7 @@ start_characters = [
     },
     {
         "name": "Николай",
-        "age": 23 * 12,
+        "age": 23,
         "mother_id": None,
         "pregnancy": None,
         "father_id": None,
@@ -279,7 +283,7 @@ start_characters = [
     },
     {
         "name": "Алина",
-        "age": 20 * 12,
+        "age": 20,
         "mother_id": None,
         "pregnancy": None,
         "father_id": None,

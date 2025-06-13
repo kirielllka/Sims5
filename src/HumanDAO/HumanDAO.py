@@ -76,3 +76,35 @@ class HumanDAO:
                 .all()
             )
             return child
+
+    @classmethod
+    def child_by_father(cls,id):
+        with session_maker() as session:
+            child = (
+                session.query(Human)
+                .filter(
+                    Human.father_id == id,
+                    Human.death_or_alive == True,
+                )
+                .all()
+            )
+            if len(child) == 0:
+                return None
+            else:
+                return child[0]
+
+    @classmethod
+    def child_by_mother(cls,id):
+        with session_maker() as session:
+            child = (
+                session.query(Human)
+                .filter(
+                    Human.mother_id == id,
+                    Human.death_or_alive == True,
+                )
+                .all()
+            )
+            if len(child) == 0:
+                return None
+            else:
+                return child[0]

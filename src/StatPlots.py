@@ -29,11 +29,12 @@ class StatPlot:
     @classmethod
     def get_scatter_old(cls):
         fig, ax = plt.subplots()
-        age = [people.age // 12 for people in cls.data]
+        age = [people.age for people in cls.data]
         status = [
             "Жив" if people.death_or_alive is True else "Мертв"
             for people in cls.data
         ]
+        print(status)
         ax.scatter(x=age, y=status)
         ax.set_title("График продолжительности жизни")
         url = "scatter_old.png"
@@ -54,6 +55,7 @@ class StatPlot:
                 ]
             ),
         ]
+        print('pregn', vals)
         label = ["Беременные", "Не беременные"]
         ax.pie(vals, labels=label, autopct="%1.1f%%")
         ax.set_title("Соотношение беременных женщин к небеременным")
@@ -66,10 +68,10 @@ class StatPlot:
     def get_demogr_pie(cls):
         fig, ax = plt.subplots()
         vals = [
-            a := len(
+            len(
                 [people for people in cls.data if people.death_or_alive is False]
             ),
-            len(cls.data) - a,
+            len(cls.data),
         ]
         label = ["Умерло", "Родилось"]
         ax.pie(vals, labels=label, autopct="%1.1f%%")

@@ -2,7 +2,8 @@ import os
 
 from BotMethods import Bot
 from Keyboards import start_keyboard
-from GameMethods import show_people, child, run_simulation, reset
+from GameMethods import show_people, run_simulation, reset
+from src.Client.GameMethods import Human
 from src.StatPlots import StatPlot
 
 update_id = None
@@ -43,23 +44,19 @@ while True:
                     show_people(chat_id=chat_id)
 
                 if message_text == "Скрестить случайную пару":
-                    child()
+                    Human.choose_pair()
 
                 if message_text == "Симулировать 1 год":
-                    run_simulation(1 * 12)
-                    Bot.send_message(chat_id=chat_id, text="Симуляция завершена")
-
-                if message_text == "Симулировать 5 лет":
-                    run_simulation(5 * 12)
-                    Bot.send_message(chat_id=chat_id, text="Симуляция завершена")
-
-                if message_text == "Симулировать 1 месяц":
                     run_simulation(1)
                     Bot.send_message(chat_id=chat_id, text="Симуляция завершена")
 
-                if message_text == "Симулировать 25 лет":
+                if message_text == "Симулировать 5 лет":
+                    run_simulation(5)
+                    Bot.send_message(chat_id=chat_id, text="Симуляция завершена")
+
+                if message_text == "Симулировать 500 лет":
                     Bot.send_message(chat_id=chat_id, text="Вам придется подождать(")
-                    run_simulation(25 * 12)
+                    run_simulation(500)
                     Bot.send_message(chat_id=chat_id, text="Симуляция завершена")
 
                 if message_text == "Сбросить":
