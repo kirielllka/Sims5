@@ -30,6 +30,7 @@ class StatPlot:
     def get_scatter_old(cls):
         fig, ax = plt.subplots()
         age = [people.age for people in cls.data]
+        print(cls.data)
         status = [
             "Жив" if people.death_or_alive is True else "Мертв"
             for people in cls.data
@@ -55,6 +56,7 @@ class StatPlot:
                 ]
             ),
         ]
+        print(cls.data)
         print('pregn', vals)
         label = ["Беременные", "Не беременные"]
         ax.pie(vals, labels=label, autopct="%1.1f%%")
